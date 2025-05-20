@@ -1,0 +1,88 @@
+1  import requests
+ 2  import json
+ 3  import matplotlib.pyplot as plt
+ 4  import seaborn as sns
+ 5
+ 6  # Replace with your OpenWeatherMap API key
+ 7  API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"  # Make sure you've replaced this!
+ 8  BASE_URL = "http://api.openweathermap.org/data/2.5/weather?"
+ 9
+10  def get_weather_data(city_name):
+11      """
+12      Fetches current weather data for a given city using the OpenWeatherMap API.
+13
+14      Args:
+15          city_name (str): The name of the city.
+16
+17      Returns:
+18          dict: A dictionary containing weather information, or None if an error occurs.
+19      """
+20      params = {
+21          'q': city_name,
+22          'appid': API_KEY,
+23          'units': 'metric'  # Get temperature in Celsius
+24      }
+25      try:
+26          response = requests.get(BASE_URL, params=params)
+27          response.raise_for_status()  # Raise an exception for bad status codes
+28          weather_data = response.json()
+29          return weather_data
+30      except requests.exceptions.RequestException as e:
+31          print(f"Error fetching weather data: {e}")
+32          return None
+33      except json.JSONDecodeError:
+34          print("Error decoding JSON response.")
+35          return None
+36
+37  def visualize_weather_data(weather_data):
+38      """
+39      Creates a simple visualization dashboard of the weather data.
+40
+41      Args:
+42          weather_data (dict): The dictionary containing weather information.
+43      """
+44      if not weather_data:
+45          print("No weather data to visualize.")
+46          return
+47
+48      city = weather_data.get('name', 'Unknown City')
+49      temperature = weather_data.get('main', {}).get('temp')
+50      humidity = weather_data.get('main', {}).get('humidity')
+51      description = weather_data.get('weather', [{}])[0].get('description', 'No description')
+52      wind_speed = weather_data.get('wind', {}).get('speed')
+53
+54      print(f"Weather in {city}:")
+55      print(f"Temperature: {temperature}°C")
+56      print(f"Humidity: {humidity}%")
+57      print(f"Description: {description.capitalize()}")
+58      print(f"Wind Speed: {wind_speed} m/s")
+59
+60      # Basic visualizations
+61      plt.figure(figsize=(8, 6))
+62
+63      # Temperature bar plot
+64      plt.subplot(2, 1, 1)
+65      sns.barplot(x=['Temperature'], y=[temperature], palette="viridis")
+66      plt.ylabel("°C")
+67      plt.title(f"Temperature in {city}")
+68
+69      # Humidity bar plot
+70      plt.subplot(2, 1, 2)
+71      sns.barplot(x=['Humidity'], y=[humidity], palette="Blues")
+72      plt.ylabel("%")
+73      plt.title(f"Humidity in {city}")
+74
+75      plt.tight_layout()
+76      plt.show()
+77
+78  if _name_ == "_main_":
+79      city = input("Enter the city name: ")
+80      weather_info = get_weather_data(city)
+81      if weather_info:  # Check if weather_info is not None
+82          visualize_weather_data(weather_info)
+83          # You can save the raw data or the visualization if needed
+84          # with open("weather_data.json", "w") as f:
+85          #     json.dump(weather_info, f, indent=4)
+86          # plt.savefig("weather_dashboard.png")
+87      else:
+88          print("Failed to retrieve weather data. Please check the city name and your API key.")
