@@ -1,0 +1,38 @@
+!pipe install fpdf
+from fpdf import FPDF
+import pandas as pd
+
+# Sample data
+data = {
+    "Name": ["Alice", "Bob", "Charlie"],
+    "Score": [85, 90, 78]
+}
+
+# Convert to DataFrame
+df = pd.DataFrame(data)
+
+# Create PDF
+class PDFReport(FPDF):
+    def header(self):
+        self.set_font("Arial", 'B', 16)
+        self.cell(0, 10, "Student Report", 0, 1, "C")
+
+    def add_table(self, dataframe):
+        self.set_font("Arial", '', 12)
+        col_widths = [40, 40]
+        # Header
+        for col_name in dataframe.columns:
+            self.cell(col_widths[0], 10, col_name, 1)
+        self.ln()
+        # Rows
+        for index, row in dataframe.iterrows():
+            for item in row:
+                self.cell(col_widths[0], 10, str(item), 1)
+            self.ln()
+
+pdf = PDFReport()
+pdf.add_page()
+pdf.add_table(df)
+pdf.output("sample_report.pdf")
+
+print("PDF report generated: sample_report.pdf")
