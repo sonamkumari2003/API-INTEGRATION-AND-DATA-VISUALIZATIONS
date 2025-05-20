@@ -1,0 +1,79 @@
+# Import necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- 1. Load and Explore the Dataset ---
+# Replace 'your_dataset.csv' with the actual path to your data file
+try:
+    data = pd.read_csv('your_dataset.csv', encoding='latin-1') # Adjust encoding if needed
+    print("Dataset loaded successfully!")
+    print(data.head())
+    print(data.info())
+    print(data.isnull().sum()) # Check for missing values
+except FileNotFoundError:
+    print("Error: Dataset file not found. Please check the file path.")
+    exit()
+
+# Identify the target variable (e.g., 'spam' or 'not_spam') and the feature(s) (e.g., email text)
+# You'll need to adjust these column names based on your dataset
+target_column = 'label'
+feature_column = 'text'
+
+# Check the distribution of the target variable
+print("\nValue counts for the target variable:")
+print(data[target_column].value_counts())
+
+# --- 2. Data Preprocessing (if needed) ---
+# This might involve cleaning text data (removing punctuation, lowercasing, etc.)
+# You might also need to handle missing values or encode categorical features if present.
+
+# For text data, a common preprocessing step is to convert text to lowercase
+if feature_column in data.columns:
+    data[feature_column] = data[feature_column].astype(str).str.lower()
+
+# --- 3. Feature Engineering (Text Vectorization) ---
+# Convert text data into numerical vectors using TF-IDF
+tfidf_vectorizer = TfidfVectorizer(stop_words='english') # Remove common English stop words
+X = tfidf_vectorizer.fit_transform(data[feature_column])
+y = data[target_column]
+
+# --- 4. Split Data into Training and Testing Sets ---
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80% train, 20% test
+
+# --- 5. Model Selection and Training ---
+# Choose a suitable classification model (e.g., Logistic Regression, Naive Bayes, Support Vector Machines)
+# Logistic Regression is a good starting point for many text classification tasks
+model = LogisticRegression(random_state=42)
+model.fit(X_train, y_train)
+
+# --- 6. Model Evaluation ---
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Evaluate the model's performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f"\nAccuracy of the model: {accuracy:.4f}")
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=model.classes_, yticklabels=model.classes_)
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()
+
+# --- 7. Further Steps (Optional) ---
+# - Experiment with different models.
+# - Tune hyperparameters using techniques like GridSearchCV or RandomizedSearchCV.
+# - Perform more advanced text preprocessing (e.g., stemming, lemmatization).
+# - Analyze misclassified samples to understand the model's weaknesses.
